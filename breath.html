@@ -34,16 +34,15 @@
       padding: 0 10px;
     }
 
-   .moon {
+.moon {
   position: relative;
-  margin-bottom: 30px;
   width: 180px;
-  height: 180px;
+  aspect-ratio: 1 / 1; /* 正円を維持する */
+  height: auto;
   border-radius: 50%;
   background: radial-gradient(circle, #a0eaff, #0077be);
   box-shadow: 0 0 30px rgba(0, 119, 190, 0.4);
   animation: breathGlow 11s ease-in-out infinite;
-  transition: background 1s, box-shadow 1s;
 }
 
 .moon::after {
@@ -267,74 +266,79 @@
       timer.textContent = `セッション：${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
-    function toggleSession() {
-      const button = document.getElementById("sessionBtn");
-      const phraseEl = document.getElementById("phrase");
-      const durationInput = document.getElementById("durationInput");
+function toggleSession() {
+  const button = document.getElementById("sessionBtn");
+  const phraseEl = document.getElementById("phrase");
+  const durationInput = document.getElementById("durationInput");
 
-      if (sessionActive) {
-        endSession("セッションを停止しました。");
-        return;
-      }
+  if (sessionActive) {
+    endSession("セッションを停止しました。");
+    return;
+  }
 
-      let inputMinutes = parseInt(durationInput.value);
-      if (isNaN(inputMinutes) || inputMinutes <= 0) inputMinutes = 5;
-      sessionDuration = inputMinutes * 60;
-      timePassed = 0;
+  let inputMinutes = parseInt(durationInput.value);
+  if (isNaN(inputMinutes) || inputMinutes <= 0) inputMinutes = 5;
+  sessionDuration = inputMinutes * 60;
+  timePassed = 0;
 
-      updateTimerDisplay(0);
-      sessionActive = true;
-      button.textContent = "セッションを停止する";
-      phraseEl.textContent = "深呼吸からはじめましょう…";
+  updateTimerDisplay(0);
+  sessionActive = true;
+  button.textContent = "セッションを停止する";
+  phraseEl.textContent = "深呼吸からはじめましょう…";
 
-      bgm.volume = parseFloat(document.getElementById("bgmVolume").value);
-      bgm.play();
+  // BGM開始
+  bgm.volume = parseFloat(document.getElementById("bgmVolume").value);
+  bgm.play().catch(() => console.warn("BGM再生に失敗しました"));
 
-      sessionInterval = setInterval(() => {
-        if (!sessionActive) return;
-        const index = Math.floor(Math.random() * phrases.length);
-        const phrase = phrases[index];
-        phraseEl.textContent = phrase;
+  sessionInterval = setInterval(() => {
+    if (!sessionActive) return;
+    const index = Math.floor(Math.random() * phrases.length);
+    const phrase = phrases[index];
+    phraseEl.textContent = phrase;
 
-        const audio = new Audio(`sounds/${String(index + 1).padStart(3, '0')}_${encodeURIComponent(phrase)}.mp3`);
-        audio.play();
-      }, 11000);
-
-      timerInterval = setInterval(() => {
-        if (!sessionActive) return;
-        timePassed++;
-        updateTimerDisplay(timePassed);
-        if (timePassed >= sessionDuration) {
-          endSession("セッション終了です。おつかれさま。");
-        }
-      }, 1000);
-    }
-
-    function endSession(message) {
-      clearInterval(sessionInterval);
-      clearInterval(timerInterval);
-      sessionActive = false;
-
-      document.getElementById("sessionBtn").textContent = "呼吸セッションを始める";
-      document.getElementById("phrase").textContent = message;
-      bell.play();
-
-      const fadeInterval = setInterval(() => {
-        if (bgm.volume > 0.05) {
-          bgm.volume -= 0.01;
-        } else {
-          bgm.pause();
-          clearInterval(fadeInterval);
-          bgm.volume = parseFloat(document.getElementById("bgmVolume").value);
-        }
-      }, 100);
-    }
-
-    document.getElementById("bgmVolume").addEventListener("input", function () {
-      bgm.volume = parseFloat(this.value);
+    const fileName = `sounds/${String(index + 1).padStart(3, '0')}_${encodeURIComponent(phrase)}.mp3`;
+    const audio = new Audio(fileName);
+    audio.addEventListener("canplaythrough", () => {
+      audio.play().catch(() => console.warn(`音声 ${fileName} の再生に失敗しました`));
     });
+    audio.load(); // 確実に読み込ませる
+  }, 11000);
 
+  timerInterval = setInterval(() => {
+    if (!sessionActive) return;
+    timePassed++;
+    updateTimerDisplay(timePassed);
+    if (timePassed >= sessionDuration) {
+      endSession("セッション終了です。おつかれさま。");
+    }
+  }, 1000);
+}
+
+function endSession(message) {
+  clearInterval(sessionInterval);
+  clearInterval(timerInterval);
+  sessionActive = false;
+
+  document.getElementById("sessionBtn").textContent = "呼吸セッションを始める";
+  document.getElementById("phrase").textContent = message;
+
+  bell.play();
+
+  // BGMフェードアウト → 鐘が鳴り終わったらBGM停止
+  const fadeInterval = setInterval(() => {
+    if (bgm.volume > 0.05) {
+      bgm.volume -= 0.01;
+    } else {
+      clearInterval(fadeInterval);
+    }
+  }, 100);
+
+  bell.onended = () => {
+    bgm.pause();
+    bgm.currentTime = 0;
     bgm.volume = parseFloat(document.getElementById("bgmVolume").value);
+  };
+}
   </script>
 </body>
 </html>
