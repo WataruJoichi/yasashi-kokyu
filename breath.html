@@ -1,8 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <title>やさしい呼吸</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: 'sans-serif';
@@ -11,59 +13,74 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      justify-content: flex-start;
       padding: 20px;
+      height: 100vh;
+      box-sizing: border-box;
     }
 
     h1 {
       color: #bcd;
-      margin-bottom: 10px;
+      margin: 20px 0 10px;
+      font-size: 1.8em;
+      text-align: center;
     }
 
     #phrase {
-      font-size: 1.4em;
-      margin-bottom: 50px;
+      font-size: 1.2em;
+      margin: 20px 0;
       color: #ddd;
       text-align: center;
-      line-height: 1.6;
-      min-height: 4.5em;
+      min-height: 3.6em;
+      padding: 0 10px;
     }
 
     .moon {
-      margin-bottom: 30px;
-      width: 180px;
-      height: 180px;
+      margin: 20px 0;
+      width: 200px;
+      height: 200px;
       border-radius: 50%;
       background: radial-gradient(circle, #a0eaff, #0077be);
-      box-shadow: 0 0 30px rgba(0, 119, 190, 0.4);
-      animation: breath 11s infinite;
+      box-shadow: 0 0 40px rgba(0, 119, 190, 0.6);
+      animation: breath 11s ease-in-out infinite;
     }
 
     @keyframes breath {
-      0% { transform: scale(1); opacity: 0.9; }
-      36.36% { transform: scale(1.2); opacity: 1; }  /* 4秒地点 */
-      100% { transform: scale(1); opacity: 0.9; }
+      0%   { transform: scale(1); opacity: 0.9; }
+      36.36% { transform: scale(1.3); opacity: 1; } /* 約4秒 */
+      100% { transform: scale(1); opacity: 0.9; }  /* 約7秒で戻る */
     }
 
-    button {
-      margin: 6px;
-      padding: 10px 24px;
-      font-size: 1em;
+    button, input[type="number"], input[type="range"] {
+      font-size: 1.1em;
+      margin: 10px;
+      padding: 12px 20px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       background: #88caca;
       color: white;
       cursor: pointer;
+      width: 90%;
+      max-width: 400px;
     }
 
     button:hover {
       background: #70b0b0;
     }
 
-    input[type="number"], input[type="range"] {
-      margin: 5px;
+    input[type="range"] {
+      width: 90%;
+      max-width: 400px;
+    }
+
+    #timer {
+      margin: 10px;
+      font-size: 1.2em;
+    }
+
+    label {
+      margin-top: 15px;
+      display: block;
     }
   </style>
 </head>
@@ -89,8 +106,7 @@
   </audio>
 
   <script>
-    const phrases = [
-      "今の私で大丈夫。",
+    const phrases = [ "今の私で大丈夫。",
       "私はベストを尽くしている。",
       "完璧じゃなくても、十分価値がある。",
       "私には優しくする価値がある。",
@@ -190,7 +206,7 @@
       "すこし笑えた。それでいい。",
       "また新しい明日がくる。",
       "私は、私とともに生きている。"
-    ];
+];
 
     let sessionActive = false;
     let sessionInterval = null;
@@ -228,7 +244,6 @@
       button.textContent = "セッションを停止する";
       phraseEl.textContent = "深呼吸からはじめましょう…";
 
-      // BGM開始
       bgm.volume = parseFloat(document.getElementById("bgmVolume").value);
       bgm.play();
 
@@ -259,11 +274,8 @@
 
       document.getElementById("sessionBtn").textContent = "呼吸セッションを始める";
       document.getElementById("phrase").textContent = message;
-
-      // 鐘の音
       bell.play();
 
-      // BGMフェードアウト
       const fadeInterval = setInterval(() => {
         if (bgm.volume > 0.05) {
           bgm.volume -= 0.01;
