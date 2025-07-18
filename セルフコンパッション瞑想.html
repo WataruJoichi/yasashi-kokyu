@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>やさしい呼吸</title>
+  <style>
+    body {
+      font-family: 'sans-serif';
+      background: #0e1a26;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #bcd;
+      margin-bottom: 10px;
+    }
+
+    #phrase {
+      font-size: 1.4em;
+      margin-bottom: 50px;
+      color: #ddd;
+      text-align: center;
+      line-height: 1.6;
+      min-height: 4.5em;
+    }
+
+    .moon {
+      margin-bottom: 30px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #a0eaff, #0077be);
+      box-shadow: 0 0 30px rgba(0, 119, 190, 0.4);
+      animation: breath 11s infinite;
+    }
+
+    @keyframes breath {
+      0% { transform: scale(1); opacity: 0.9; }
+      36.36% { transform: scale(1.2); opacity: 1; }  /* 4秒地点 */
+      100% { transform: scale(1); opacity: 0.9; }
+    }
+
+    button {
+      margin: 6px;
+      padding: 10px 24px;
+      font-size: 1em;
+      border: none;
+      border-radius: 6px;
+      background: #88caca;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #70b0b0;
+    }
+
+    input[type="number"], input[type="range"] {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>やさしい呼吸</h1>
+  <div id="phrase">ここに、やさしい言葉が表示されます</div>
+  <div class="moon"></div>
+
+  <label for="durationInput">セッション時間（分）:</label>
+  <input type="number" id="durationInput" min="1" max="60" value="5" />
+
+  <button id="sessionBtn" onclick="toggleSession()">呼吸セッションを始める</button>
+  <div id="timer">セッション：00:00</div>
+
+  <label for="bgmVolume">♪ BGM音量</label>
+  <input type="range" id="bgmVolume" min="0" max="1" step="0.01" value="0.5" />
+
+  <audio id="bgm" loop>
+    <source src="bgm.mp3" type="audio/mp3" />
+  </audio>
+  <audio id="bell">
+    <source src="bell.mp3" type="audio/mp3" />
+  </audio>
+
+  <script>
+    const phrases = [
+      "今の私で大丈夫。",
+      "私はベストを尽くしている。",
+      "完璧じゃなくても、十分価値がある。",
+      "私には優しくする価値がある。",
+      "うまくいかない日があってもいい。",
+      "それでも私の人生は続いていく。",
+      "今日の私を認めてあげよう。",
+      "心がつかれたら、休んでいい。",
+      "私は私の味方でいていい。",
+      "つらい時は、自分を抱きしめよう。",
+      "うまくいかなくて当然なときもある。",
+      "これも人間らしさ。",
+      "私は一人じゃない。",
+      "誰にでも間違いはある。",
+      "苦しんでいる私に優しくあろう。",
+      "この痛みも、やがて和らいでいく。",
+      "今のこの気持ちも、ちゃんと大事にしよう。",
+      "私はこの苦しみを抱えていても大丈夫。",
+      "自分を責める代わりに、いたわってみよう。",
+      "苦しいのは、ちゃんと向き合っているから。",
+      "深呼吸して、今を感じよう。",
+      "少しだけでも、自分のための時間を取ろう。",
+      "今日は小さな喜びを見つけよう。",
+      "お茶を飲んで、ほっとしよう。",
+      "今ここにいることを認めよう。",
+      "今の気分にそっと寄り添ってみよう。",
+      "自分にやさしい選択をしてみよう。",
+      "無理せず、一歩ずつでいい。",
+      "自分のペースで進めばいい。",
+      "がんばりすぎなくていい。",
+      "私は価値ある存在。",
+      "私にしかできないことがある。",
+      "私はここまで頑張ってきた。",
+      "小さなことでも、よくやった。",
+      "私には成長する力がある。",
+      "自分を信じることをあきらめない。",
+      "私はこの世界の大切な一部。",
+      "私の感じ方には意味がある。",
+      "私は私の人生を生きていい。",
+      "私には乗り越える力がある。",
+      "それはつらかったよね。",
+      "そんな日もあるよ。",
+      "そばにいるよ、自分。",
+      "わたし、よくがんばってるよ。",
+      "涙が出てもいいんだよ。",
+      "息を吸って、やさしくなろう。",
+      "怒っても、悲しくてもいい。",
+      "自分の感情に正直でいていい。",
+      "つらいと感じることを許そう。",
+      "心が重い日も、そっと支えよう。",
+      "他人と比べなくていい。",
+      "私は私の道を行こう。",
+      "誰かのようにならなくていい。",
+      "完璧じゃなくて、ちょうどいい。",
+      "不完全なところも愛していこう。",
+      "できないことがあっても大丈夫。",
+      "私のペースで歩けばいい。",
+      "失敗しても、価値は変わらない。",
+      "ゆっくりでいい。止まってもいい。",
+      "がんばらなくても、私は愛されていい。",
+      "今日も一日おつかれさま。",
+      "よくここまでやってきたね。",
+      "もう大丈夫、休んでいいよ。",
+      "今夜は自分を許そう。",
+      "つらいこと、全部おいて眠ろう。",
+      "心がざわつくときも、自分を責めない。",
+      "静かに目を閉じて、自分をいたわろう。",
+      "夢の中では、自由でいよう。",
+      "夜は、何も決めなくていい。",
+      "眠ることも、立派なセルフケア。",
+      "今日の私にも、やさしくしよう。",
+      "新しい一日を、柔らかく迎えよう。",
+      "今日の気分で、今日をつくっていい。",
+      "何かひとつでも、自分を喜ばせよう。",
+      "どんな一日になっても、私は私を見捨てない。",
+      "今日できることに目を向けよう。",
+      "今日はどんな自分もOK。",
+      "今日も私を生きよう。",
+      "心の声に耳をすませよう。",
+      "今日も、小さな優しさを大切に。",
+      "誰かに傷つけられても、自分を守っていい。",
+      "嫌な気持ちになったら、離れていい。",
+      "NOと言っても、私は悪くない。",
+      "嫌われる勇気より、自分を大事にする勇気。",
+      "わかってもらえなくても、自分がわかっていればいい。",
+      "つながりは大事。でも、まずは自分を大切に。",
+      "自分を後回しにしない。",
+      "距離をとることは、思いやりの形。",
+      "感情を抑えすぎなくていい。",
+      "誰かの期待より、自分の本音を。",
+      "少しずつでも前に進んでる。",
+      "今日は前より自分に優しくできた。",
+      "私は自分を癒す力を持っている。",
+      "苦しみも、回復の一部。",
+      "もう一度立ち上がってみよう。",
+      "転んだって、起き上がればいい。",
+      "大丈夫、私は生きてる。",
+      "すこし笑えた。それでいい。",
+      "また新しい明日がくる。",
+      "私は、私とともに生きている。"
+    ];
+
+    let sessionActive = false;
+    let sessionInterval = null;
+    let timerInterval = null;
+    let timePassed = 0;
+    let sessionDuration = 300;
+
+    const bgm = document.getElementById("bgm");
+    const bell = document.getElementById("bell");
+
+    function updateTimerDisplay(seconds) {
+      const timer = document.getElementById("timer");
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      timer.textContent = `セッション：${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function toggleSession() {
+      const button = document.getElementById("sessionBtn");
+      const phraseEl = document.getElementById("phrase");
+      const durationInput = document.getElementById("durationInput");
+
+      if (sessionActive) {
+        endSession("セッションを停止しました。");
+        return;
+      }
+
+      let inputMinutes = parseInt(durationInput.value);
+      if (isNaN(inputMinutes) || inputMinutes <= 0) inputMinutes = 5;
+      sessionDuration = inputMinutes * 60;
+      timePassed = 0;
+
+      updateTimerDisplay(0);
+      sessionActive = true;
+      button.textContent = "セッションを停止する";
+      phraseEl.textContent = "深呼吸からはじめましょう…";
+
+      // BGM開始
+      bgm.volume = parseFloat(document.getElementById("bgmVolume").value);
+      bgm.play();
+
+      sessionInterval = setInterval(() => {
+        if (!sessionActive) return;
+        const index = Math.floor(Math.random() * phrases.length);
+        const phrase = phrases[index];
+        phraseEl.textContent = phrase;
+
+        const audio = new Audio(`sounds/${String(index + 1).padStart(3, '0')}_${encodeURIComponent(phrase)}.mp3`);
+        audio.play();
+      }, 11000);
+
+      timerInterval = setInterval(() => {
+        if (!sessionActive) return;
+        timePassed++;
+        updateTimerDisplay(timePassed);
+        if (timePassed >= sessionDuration) {
+          endSession("セッション終了です。おつかれさま。");
+        }
+      }, 1000);
+    }
+
+    function endSession(message) {
+      clearInterval(sessionInterval);
+      clearInterval(timerInterval);
+      sessionActive = false;
+
+      document.getElementById("sessionBtn").textContent = "呼吸セッションを始める";
+      document.getElementById("phrase").textContent = message;
+
+      // 鐘の音
+      bell.play();
+
+      // BGMフェードアウト
+      const fadeInterval = setInterval(() => {
+        if (bgm.volume > 0.05) {
+          bgm.volume -= 0.01;
+        } else {
+          bgm.pause();
+          clearInterval(fadeInterval);
+          bgm.volume = parseFloat(document.getElementById("bgmVolume").value);
+        }
+      }, 100);
+    }
+
+    document.getElementById("bgmVolume").addEventListener("input", function () {
+      bgm.volume = parseFloat(this.value);
+    });
+
+    bgm.volume = parseFloat(document.getElementById("bgmVolume").value);
+  </script>
+</body>
+</html>
